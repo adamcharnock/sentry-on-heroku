@@ -40,14 +40,14 @@ SENTRY_FEATURES['auth:register'] = False
 # Generic Redis configuration used as defaults for various things including:
 # Buffers, Quotas, TSDB
 
-redis_url = urlparse.urlparse(os.environ['REDIS_URL'])
+redis_url = urlparse.urlparse(os.environ.get('REDIS_URL', 'redis://localhost/0'))
 SENTRY_REDIS_OPTIONS = {
     'hosts': {
         0: {
             'host': redis_url.hostname,
-            'port': redis_url.port,
-            'password': redis_url.password,
-            'db': 0,
+            'port': redis_url.port or 6379,
+            'password': redis_url.password or '',
+            'db': int(redis_url.path.strip('/')) if redis_url.path else 0,
         }
     }
 }
@@ -81,7 +81,7 @@ SENTRY_CACHE = 'sentry.cache.redis.RedisCache'
 # on a Python framework called Celery to manage queues.
 
 CELERY_ALWAYS_EAGER = False
-BROKER_URL = os.environ['REDIS_URL'] + '/0'
+BROKER_URL = os.environ['REDIS_URL']
 
 ###############
 # Rate Limits #
@@ -141,7 +141,7 @@ SENTRY_FILESTORE_OPTIONS = {
 SENTRY_URL_PREFIX = os.environ['SENTRY_URL_PREFIX']
 
 SENTRY_WEB_HOST = '0.0.0.0'
-SENTRY_WEB_PORT = int(os.environ['PORT'])
+SENTRY_WEB_PORT = int(os.environ.get('PORT', 8000))
 SENTRY_WEB_OPTIONS = {
     'secure_scheme_headers': {'X-FORWARDED-PROTO': 'https'},
     'worker_class': 'gevent',
